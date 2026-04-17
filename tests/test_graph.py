@@ -1,5 +1,11 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import json
 from graph.pipeline import graph
+
 
 def test_pipeline_runs():
     with open("data/fixtures/mock_state.json") as f:
