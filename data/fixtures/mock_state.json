@@ -1,0 +1,107 @@
+{
+  "raw_signals": [
+    {
+      "id": "sig_001",
+      "type": "weather",
+      "source": "NOAA",
+      "raw_text": "Severe cyclone warning impacting coastal manufacturing zones in Southeast Asia",
+      "severity": 0.82,
+      "affected_region": "Vietnam",
+      "affected_commodities": ["electronics", "semiconductors"],
+      "timestamp": "2026-04-17T10:00:00",
+      "confidence": 0.91
+    }
+  ],
+  "signal_summary": "A severe cyclone is expected to disrupt manufacturing hubs in Vietnam, potentially impacting electronics supply chains.",
+
+  "supplier_risk_scores": {
+    "SUP123": 0.78,
+    "SUP456": 0.34
+  },
+  "supplier_profiles": {
+    "SUP123": {
+      "id": "SUP123",
+      "name": "VietElectro Components Ltd",
+      "tier": 1,
+      "location": "Ho Chi Minh City, Vietnam",
+      "commodities": ["electronics", "semiconductors"],
+      "risk_score": 0.78,
+      "risk_factors": ["Cyclone impact", "Port delays", "Labor shortage"],
+      "historical_disruptions": 3,
+      "avg_recovery_days": 12.5,
+      "contract_value_inr": 25000000,
+      "lead_time_days": 14
+    }
+  },
+  "disruption_detected": true,
+  "affected_suppliers": ["SUP123"],
+
+  "impacted_skus": [
+    {
+      "sku_id": "SKU789",
+      "sku_name": "Smartphone Model X",
+      "supplier_id": "SUP123",
+      "current_stock_units": 1200,
+      "avg_daily_demand": 150.5,
+      "days_until_stockout": 8,
+      "revenue_at_risk_inr": 1800000,
+      "margin_at_risk_inr": 450000,
+      "severity": "high",
+      "alternate_supplier_available": true
+    }
+  ],
+  "total_revenue_at_risk": 1800000,
+  "impact_severity": "high",
+
+  "reorder_recommendations": [
+    {
+      "sku_id": "SKU789",
+      "current_stock": 1200,
+      "recommended_reorder_qty": 3000,
+      "preferred_supplier_id": "SUP123",
+      "alternate_supplier_id": "SUP999",
+      "estimated_cost_inr": 4200000,
+      "lead_time_days": 10,
+      "urgency": "immediate",
+      "po_draft_text": "Urgent purchase order for 3000 units due to anticipated supply disruption."
+    }
+  ],
+  "safety_stock_adjustments": {
+    "SKU789": 2000
+  },
+
+  "playbook": {
+    "run_id": "RUN001",
+    "severity": "high",
+    "executive_summary": "Critical supplier disruption detected affecting key smartphone SKU. Immediate procurement action required.",
+    "actions": [
+      {
+        "id": "ACT001",
+        "priority": 1,
+        "action": "Initiate alternate supplier onboarding",
+        "owner_role": "Procurement Manager",
+        "deadline_hours": 12,
+        "status": "pending"
+      }
+    ],
+    "supplier_comms": [
+      {
+        "supplier_id": "SUP123",
+        "message": "Requesting status update on cyclone impact and shipment delays."
+      }
+    ],
+    "internal_alerts": [
+      {
+        "level": "high",
+        "message": "Potential stockout risk for SKU789 within 8 days."
+      }
+    ],
+    "escalate_to": ["Head of Supply Chain"]
+  },
+  "escalation_required": true,
+
+  "run_id": "RUN001",
+  "triggered_at": "2026-04-17T10:05:00",
+  "status": "running",
+  "error_log": []
+}git add data/fixtures/mock_state.json
