@@ -12,3 +12,5 @@ requests
 langsmith
 pinecone
 psycopg[binary]
+celery[redis]
+redis
