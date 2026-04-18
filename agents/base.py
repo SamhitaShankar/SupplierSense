@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from langchain.agents import create_agent
 from langchain_aws import ChatBedrockConverse
 
 
@@ -16,3 +17,15 @@ def make_bedrock_llm(
         temperature=temperature,
         max_tokens=max_tokens,
     )
+
+
+def make_agent(tools, system_prompt: str):
+    llm = make_bedrock_llm()
+
+    agent = create_agent(
+        model=llm,
+        tools=tools,
+        system_prompt=system_prompt,
+    )
+
+    return agent
