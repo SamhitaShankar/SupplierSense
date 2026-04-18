@@ -1,6 +1,6 @@
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
-
+from agents.signal_harvester.agent import signal_harvester_agent
 # Import your shared contract
 from agents.interfaces import SupplierSenseState
 
@@ -57,7 +57,7 @@ def check_disruption(state: SupplierSenseState) -> str:
 builder = StateGraph(SupplierSenseState)
 
 # Add nodes
-builder.add_node("signal_harvester", signal_harvester)
+builder.add_node("signal_harvester", signal_harvester_agent)
 builder.add_node("supplier_analyzer", supplier_analyzer)
 builder.add_node("impact_modeler", impact_modeler)
 builder.add_node("inventory_optimizer", inventory_optimizer)

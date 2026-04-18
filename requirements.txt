@@ -1,6 +1,11 @@
 fastapi
 uvicorn
-langgraph
 pydantic
 python-dotenv
 pytest
+langgraph
+langchain
+langchain-core
+langchain-aws
+boto3
+requests
