@@ -1,10 +1,7 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:15
     container_name: suppliersense_postgres
-    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -17,7 +14,6 @@ services:
   redis:
     image: redis:7
     container_name: suppliersense_redis
-    restart: always
     ports:
       - "6379:6379"
 
@@ -27,16 +23,35 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: >
-      sh -c "pip install fastapi uvicorn &&
-             uvicorn api.main:app --host 0.0.0.0 --port 8000"
-    ports:
-      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
     depends_on:
       - postgres
       - redis
+    command: >
+      sh -c "pip install -r requirements.txt &&
+             uvicorn api.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+
+  worker:
+    image: python:3.11-slim
+    container_name: suppliersense_worker
+    working_dir: /app
+    volumes:
+      - .:/app
     env_file:
-      - .env.example
+      - .env
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - redis
+      - postgres
+    command: >
+      sh -c "pip install -r requirements.txt &&
+             celery -A worker.celery_app.celery_app worker --loglevel=info"
 
 volumes:
   postgres_data:
