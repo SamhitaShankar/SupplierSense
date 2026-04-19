@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+pytest
+langgraph
+langchain
+langchain-core
+langchain-aws
+boto3
+requests
+langsmith
+pinecone
+psycopg[binary]
+celery[redis]
+redis
