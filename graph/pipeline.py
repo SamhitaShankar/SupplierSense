@@ -5,6 +5,7 @@ from agents.interfaces import SupplierSenseState
 from agents.signal_harvester.agent import signal_harvester_agent
 from agents.supplier_analyzer.agent import supplier_analyzer_agent
 from agents.impact_modeler.agent import impact_modeler_agent
+from agents.inventory_optimizer.agent import inventory_optimizer_agent
 # =========================
 # STUB NODE FUNCTIONS
 # =========================
@@ -60,7 +61,7 @@ builder = StateGraph(SupplierSenseState)
 builder.add_node("signal_harvester", signal_harvester_agent)
 builder.add_node("supplier_analyzer", supplier_analyzer_agent)
 builder.add_node("impact_modeler", impact_modeler_agent)
-builder.add_node("inventory_optimizer", inventory_optimizer)
+builder.add_node("inventory_optimizer", inventory_optimizer_agent)
 builder.add_node("response_planner", response_planner)
 builder.add_node("orchestrator", orchestrator)
 
