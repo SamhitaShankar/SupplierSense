@@ -2,16 +2,20 @@ import { useEffect } from "react";
 import { useRunStore } from "../store/runStore";
 
 export const useRunSocket = (runId: string | null) => {
-  const setState = useRunStore((s) => s.setState);
+  const updateFromRunPayload = useRunStore((s) => s.updateFromRunPayload);
 
   useEffect(() => {
     if (!runId) return;
 
     const ws = new WebSocket(`ws://127.0.0.1:8000/ws/${runId}`);
 
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setState(data.state);
+      updateFromRunPayload(data);
     };
 
     ws.onerror = (err) => {
@@ -23,5 +27,5 @@ export const useRunSocket = (runId: string | null) => {
     };
 
     return () => ws.close();
-  }, [runId]);
+  }, [runId, updateFromRunPayload]);
 };
