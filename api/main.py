@@ -4,6 +4,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
@@ -15,7 +16,13 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 MOCK_STATE_PATH = ROOT_DIR / "data" / "fixtures" / "mock_state.json"
 
 app = FastAPI(title="SupplierSense API")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class RunCreateResponse(BaseModel):
     run_id: str
