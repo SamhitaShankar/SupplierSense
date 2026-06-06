@@ -1,21 +1,67 @@
 import { create } from "zustand";
 
 export type SignalEvent = {
-  id: number | string;
-  type: string;
+  id?: number | string;
+  signal_id?: string;
+  type?: string;
+  event_type?: string;
   source: string;
-  raw_text: string;
+  raw_text?: string;
+  summary?: string;
   severity: number;
-  affected_region: string;
-  affected_commodities: string[];
-  timestamp: string;
-  confidence: number;
+  affected_region?: string;
+  region?: string;
+  affected_commodities?: string[];
+  commodities?: string[];
+  timestamp?: string;
+  confidence?: number;
+};
+
+export type SupplierRiskScore = {
+  supplier_id: string;
+  supplier_name?: string;
+  risk_score: number;
+  risk_level?: string;
+  reasoning?: string[];
+};
+
+export type SupplierProfile = {
+  supplier_id: string;
+  supplier_name: string;
+  tier?: number;
+  country?: string;
+  region?: string;
+  city?: string;
+  commodities?: string[];
+  primary_commodity?: string;
+  lead_time_days?: number;
+  risk_score?: number;
+  historical_disruptions?: number;
+};
+
+export type ImpactedSKU = {
+  sku_id?: string;
+  sku_name?: string;
+  product_name?: string;
+  supplier_id?: string;
+  supplier_name?: string;
+  stockout_days?: number;
+  days_to_stockout?: number;
+  days_until_stockout?: number;
+  revenue_at_risk?: number;
+  severity?: string;
+  risk_level?: string;
 };
 
 export type SupplierSenseState = {
-  raw_signals: SignalEvent[];
+  raw_signals?: SignalEvent[];
   signal_summary?: string;
   disruption_detected?: boolean;
+  supplier_risk_scores?: SupplierRiskScore[];
+  supplier_profiles?: SupplierProfile[];
+  impacted_skus?: ImpactedSKU[];
+  total_revenue_at_risk?: number;
+  impact_severity?: string;
   [key: string]: unknown;
 };
 

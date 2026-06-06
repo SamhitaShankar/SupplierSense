@@ -3,6 +3,8 @@ import "./dashboard.css";
 import { startRun } from "./api/client";
 import { TopNav } from "./components/layout/TopNav";
 import { SignalFeed } from "./components/signals/SignalFeed";
+import SupplierRiskTable from "./components/SupplierRiskTable";
+import SKUImpactGrid from "./components/SKUImpactGrid";
 import { useRunSocket } from "./hooks/useRunSocket";
 import { useRunStore } from "./store/runStore";
 
@@ -15,6 +17,18 @@ function App() {
   const status = useRunStore((s) => s.status);
   const state = useRunStore((s) => s.state);
   const error = useRunStore((s) => s.error);
+
+  console.log("FULL STATE:", state);
+  console.log("supplier_profiles raw:", state?.supplier_profiles);
+  console.log("supplier_profiles isArray:", Array.isArray(state?.supplier_profiles));
+  console.log("supplier_profiles values:", Object.values(state?.supplier_profiles ?? {}));
+
+  console.log("supplier_risk_scores raw:", state?.supplier_risk_scores);
+  console.log("supplier_risk_scores isArray:", Array.isArray(state?.supplier_risk_scores));
+  console.log("supplier_risk_scores values:", Object.values(state?.supplier_risk_scores ?? {}));
+
+  console.log("impacted_skus raw:", state?.impacted_skus);
+  console.log("impacted_skus isArray:", Array.isArray(state?.impacted_skus));
 
   const setRunId = useRunStore((s) => s.setRunId);
   const setStatus = useRunStore((s) => s.setStatus);
@@ -54,12 +68,14 @@ function App() {
             >
               Overview
             </button>
+
             <button
               className={activeTab === "suppliers" ? "tab active-tab" : "tab"}
               onClick={() => setActiveTab("suppliers")}
             >
               Suppliers
             </button>
+
             <button
               className={activeTab === "playbook" ? "tab active-tab" : "tab"}
               onClick={() => setActiveTab("playbook")}
@@ -84,9 +100,16 @@ function App() {
             )}
 
             {activeTab === "suppliers" && (
-              <div className="content-card">
-                <h2>Suppliers</h2>
-                <p>Supplier analysis components will go here next.</p>
+              <div className="suppliers-tab-layout">
+                <div className="content-card">
+                  <h2>Supplier Risk Table</h2>
+                  <SupplierRiskTable />
+                </div>
+
+                <div className="content-card">
+                  <h2>SKU Impact Grid</h2>
+                  <SKUImpactGrid />
+                </div>
               </div>
             )}
 
@@ -97,11 +120,7 @@ function App() {
               </div>
             )}
 
-            {error && (
-              <div className="error-box">
-                {error}
-              </div>
-            )}
+            {error && <div className="error-box">{error}</div>}
           </section>
         </main>
       </div>

@@ -19,30 +19,67 @@ def supplier_analyzer_agent(state: SupplierSenseState) -> SupplierSenseState:
     affected_suppliers = []
     disruption_detected = False
 
+    seen_supplier_ids = set()
+    seen_score_pairs = set()
+
     for signal in raw_signals:
         region = signal.get("affected_region")
-        commodities = signal.get("affected_commodities", [])
+        commodities = signal.get("affected_commodities", []) or []
 
-        suppliers = lookup_supplier_by_region(region, None)
+        matched_suppliers = []
 
-        for supplier in suppliers:
+        if commodities:
+            for commodity in commodities:
+                matched_suppliers.extend(
+                    lookup_supplier_by_region(region, commodity)
+                )
+
+        if not matched_suppliers:
+            matched_suppliers = lookup_supplier_by_region(region, None)
+
+        unique_suppliers = {}
+        for supplier in matched_suppliers:
+            unique_suppliers[supplier["supplier_id"]] = supplier
+
+        for supplier in unique_suppliers.values():
             supplier_id = supplier["supplier_id"]
 
             profile = enrich_supplier_profile(supplier_id, 5)
 
-            supplier_profiles.append(profile)
+            if supplier_id not in seen_supplier_ids:
+                supplier_profiles.append(profile["supplier"])
+                seen_supplier_ids.add(supplier_id)
 
-            score_obj = calculate_risk_score(signal, profile)
+            score_obj = calculate_risk_score.invoke(
+                {
+                    "signal_event": signal,
+                    "supplier_profile": profile,
+                }
+            )
 
-            supplier_scores.append(score_obj)
+            score_key = (
+                score_obj["supplier_id"],
+                signal.get("id") or signal.get("signal_id") or signal.get("timestamp"),
+            )
 
-            if flag_disruption(score_obj["risk_score"], 0.65):
+            if score_key not in seen_score_pairs:
+                supplier_scores.append(score_obj)
+                seen_score_pairs.add(score_key)
+
+            is_disrupted = flag_disruption.invoke(
+                {
+                    "risk_score": score_obj["risk_score"],
+                    "threshold": 0.5,
+                }
+            )
+
+            if is_disrupted:
                 disruption_detected = True
                 affected_suppliers.append(supplier_id)
 
     state["supplier_risk_scores"] = supplier_scores
     state["supplier_profiles"] = supplier_profiles
     state["disruption_detected"] = disruption_detected
-    state["affected_suppliers"] = list(set(affected_suppliers))
+    state["affected_suppliers"] = sorted(list(set(affected_suppliers)))
 
     return state

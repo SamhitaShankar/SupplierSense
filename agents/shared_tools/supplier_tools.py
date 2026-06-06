@@ -7,7 +7,6 @@ import psycopg
 from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 
@@ -19,21 +18,49 @@ def get_db_connection():
     return psycopg.connect(database_url, row_factory=dict_row)
 
 
+def normalize_region(region: str) -> str:
+    """
+    Convert signals like 'Chennai, India' → '%chennai%'
+    """
+    if not region:
+        return "%"
+    base = region.split(",")[0].strip().lower()
+    return f"%{base}%"
+
+
 def lookup_supplier_by_region(region: str, commodity: Optional[str] = None) -> list[dict[str, Any]]:
     """
-    Fetch suppliers from supplier_master by region.
-    Optionally filter by commodity.
+    Fetch suppliers using flexible matching:
+    - region
+    - city
+    - country
     """
+
+    region_pattern = normalize_region(region)
+
     query = """
         SELECT *
         FROM supplier_master
-        WHERE LOWER(region) = LOWER(%s)
+        WHERE (
+            LOWER(region) LIKE %s
+            OR LOWER(city) LIKE %s
+            OR LOWER(country) LIKE %s
+        )
     """
-    params = [region]
+
+    params = [region_pattern, region_pattern, region_pattern]
 
     if commodity:
-        query += " AND LOWER(primary_commodity) = LOWER(%s)"
-        params.append(commodity)
+        query += """
+            AND (
+                LOWER(primary_commodity) = LOWER(%s)
+                OR EXISTS (
+                    SELECT 1 FROM unnest(commodities) AS c
+                    WHERE LOWER(c) = LOWER(%s)
+                )
+            )
+        """
+        params.extend([commodity, commodity])
 
     query += " ORDER BY risk_score ASC, supplier_name ASC"
 
@@ -46,9 +73,6 @@ def lookup_supplier_by_region(region: str, commodity: Optional[str] = None) -> l
 
 
 def query_supplier_history(supplier_id: str, limit: int = 5) -> list[dict[str, Any]]:
-    """
-    Fetch recent disruption history for a supplier.
-    """
     query = """
         SELECT *
         FROM disruption_events
@@ -60,54 +84,18 @@ def query_supplier_history(supplier_id: str, limit: int = 5) -> list[dict[str, A
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query, (supplier_id, limit))
-            results = cur.fetchall()
-
-    return results
+            return cur.fetchall()
 
 
 def get_dnb_stub(supplier_id: str) -> dict[str, Any]:
-    """
-    Stubbed D&B-style supplier metadata.
-    Replace later with a real external enrichment source.
-    """
-    stub_map = {
-        "SUP001": {
-            "credit_score_band": "Low Risk",
-            "business_stability": "Established",
-            "years_in_operation": 12,
-        },
-        "SUP002": {
-            "credit_score_band": "Medium Risk",
-            "business_stability": "Stable",
-            "years_in_operation": 8,
-        },
-        "SUP003": {
-            "credit_score_band": "Medium Risk",
-            "business_stability": "Growing",
-            "years_in_operation": 6,
-        },
-        "SUP004": {
-            "credit_score_band": "Low Risk",
-            "business_stability": "Established",
-            "years_in_operation": 15,
-        },
+    return {
+        "credit_score_band": "Low Risk",
+        "business_stability": "Stable",
+        "years_in_operation": 10,
     }
-
-    return stub_map.get(
-        supplier_id,
-        {
-            "credit_score_band": "Unknown",
-            "business_stability": "Unknown",
-            "years_in_operation": None,
-        },
-    )
 
 
 def enrich_supplier_profile(supplier_id: str, history_limit: int = 5) -> dict[str, Any]:
-    """
-    Join supplier master + disruption history + D&B stub data
-    into one enriched profile.
-    """
     supplier_query = """
         SELECT *
         FROM supplier_master
@@ -121,15 +109,12 @@ def enrich_supplier_profile(supplier_id: str, history_limit: int = 5) -> dict[st
             supplier = cur.fetchone()
 
     if not supplier:
-        raise ValueError(f"Supplier {supplier_id} not found in supplier_master")
+        return {}
 
-    history = query_supplier_history(supplier_id, limit=history_limit)
-    dnb_stub = get_dnb_stub(supplier_id)
+    history = query_supplier_history(supplier_id, history_limit)
 
-    enriched_profile = {
+    return {
         "supplier": supplier,
         "recent_disruptions": history,
-        "dnb_stub": dnb_stub,
+        "dnb_stub": get_dnb_stub(supplier_id),
     }
-
-    return enriched_profile
